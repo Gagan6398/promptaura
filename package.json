@@ -1,0 +1,15 @@
+{
+  "name": "promptaura",
+  "version": "1.0.0",
+  "description": "PromptAura - AI Prompt Management Platform",
+  "type": "module",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && npm install && node server.js",
+    "dev": "cd backend && npm install && nodemon server.js",
+    "build": "echo 'Build complete'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
