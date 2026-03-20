@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptAura</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 340px;
+      min-height: 480px;
+      background: #0a0a0f;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+      border-bottom: 1px solid rgba(0,212,255,0.15);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #00d4ff20, #7c3aed20);
+      border: 1.5px solid rgba(0,212,255,0.5);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-text { font-size: 16px; font-weight: 700; color: #00d4ff; }
+    .plan-badge {
+      font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .plan-free { background: rgba(100,116,139,0.2); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+    .plan-basic { background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
+    .plan-premium { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+
+    /* Usage Bar */
+    .usage-section {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .usage-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; font-size: 12px; color: #94a3b8;
+    }
+    .usage-count { font-weight: 600; color: #e2e8f0; }
+    .usage-bar {
+      height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden;
+    }
+    .usage-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, #00d4ff, #7c3aed);
+      transition: width 0.5s ease;
+    }
+    .usage-fill.warning { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+    /* Not-logged-in state */
+    .auth-cta {
+      padding: 24px 18px;
+      text-align: center;
+    }
+    .auth-cta p { font-size: 13px; color: #94a3b8; margin-bottom: 16px; line-height: 1.6; }
+    .btn-primary {
+      display: block; width: 100%;
+      background: linear-gradient(135deg, #00d4ff, #0088ff);
+      color: #fff; padding: 10px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; text-decoration: none;
+      text-align: center; border: none; cursor: pointer;
+      transition: all 0.2s; margin-bottom: 8px;
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-secondary {
+      display: block; width: 100%;
+      background: rgba(255,255,255,0.05); color: #94a3b8;
+      padding: 9px; border-radius: 8px; font-size: 13px;
+      text-decoration: none; text-align: center;
+      border: 1px solid rgba(255,255,255,0.08); cursor: pointer;
+    }
+
+    /* Toggle Switch */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .toggle-label { font-size: 13px; color: #e2e8f0; }
+    .toggle-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+    .toggle {
+      position: relative; width: 40px; height: 22px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: rgba(255,255,255,0.08); border-radius: 22px;
+      transition: 0.3s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: #94a3b8;
+      border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .toggle-slider { background: rgba(0,212,255,0.3); }
+    input:checked + .toggle-slider:before {
+      transform: translateX(18px); background: #00d4ff;
+      box-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+
+    /* Slider */
+    .slider-row {
+      padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .slider-header { display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+    .slider-val { color: #00d4ff; font-weight: 600; }
+    input[type="range"] {
+      width: 100%; height: 4px; -webkit-appearance: none;
+      background: rgba(255,255,255,0.08); border-radius: 99px; outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 14px;
+      background: #00d4ff; border-radius: 50%; cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+
+    /* API Key */
+    .api-section { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .section-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .api-input-wrap { position: relative; }
+    .api-input-wrap input {
+      width: 100%; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08); color: #e2e8f0;
+      padding: 8px 36px 8px 10px; border-radius: 7px; font-size: 12px;
+      font-family: 'Courier New', monospace; outline: none;
+      transition: border-color 0.2s;
+    }
+    .api-input-wrap input:focus { border-color: rgba(0,212,255,0.3); }
+    .api-save-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #00d4ff; cursor: pointer; font-size: 14px;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 12px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer a { font-size: 11px; color: #64748b; text-decoration: none; transition: color 0.2s; }
+    .footer a:hover { color: #00d4ff; }
+    .footer-links { display: flex; gap: 14px; }
+
+    /* Status dot */
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-active { background: #10b981; box-shadow: 0 0 6px #10b981; animation: pulse-green 2s infinite; }
+    .status-inactive { background: #64748b; }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .tab {
+      flex: 1; padding: 10px; text-align: center; font-size: 12px;
+      color: #64748b; cursor: pointer; transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Upgrade banner */
+    .upgrade-banner {
+      margin: 12px 18px;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(124,58,237,0.08));
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 10px;
+      text-align: center;
+    }
+    .upgrade-banner p { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+    .upgrade-banner a {
+      font-size: 12px; font-weight: 600; color: #00d4ff;
+      text-decoration: none; padding: 6px 16px;
+      border: 1px solid rgba(0,212,255,0.3); border-radius: 6px;
+      display: inline-block; transition: all 0.2s;
+    }
+    .upgrade-banner a:hover { background: rgba(0,212,255,0.1); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="2" fill="#00d4ff"/>
+          <path d="M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">PromptAura</span>
+    </div>
+    <span id="planBadge" class="plan-badge plan-free">Free</span>
+  </div>
+
+  <!-- Status Row -->
+  <div class="toggle-row">
+    <div>
+      <div class="toggle-label">
+        <span class="status-dot status-active" id="statusDot"></span>
+        <span id="statusText">Active on this page</span>
+      </div>
+      <div class="toggle-desc" id="platformName">ChatGPT</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="mainToggle" checked />
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="main">⚡ Enhance</div>
+    <div class="tab" data-tab="settings">⚙️ Settings</div>
+    <div class="tab" data-tab="stats">📊 Stats</div>
+  </div>
+
+  <!-- TAB: Main -->
+  <div class="tab-content active" id="tab-main">
+    <!-- Usage -->
+    <div class="usage-section">
+      <div class="usage-header">
+        <span>Monthly Usage</span>
+        <span class="usage-count"><span id="usedCount">0</span> / <span id="limitCount">50</span></span>
+      </div>
+      <div class="usage-bar">
+        <div class="usage-fill" id="usageBar" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Not logged in -->
+    <div id="notLoggedIn" class="auth-cta hidden">
+      <p>Sign in to start enhancing your AI prompts with PromptAura's neural engine.</p>
+      <a href="https://promptaura.io/login?source=extension" target="_blank" class="btn-primary">🚀 Sign In to PromptAura</a>
+      <a href="https://promptaura.io/signup?source=extension" target="_blank" class="btn-secondary">Create Free Account →</a>
+    </div>
+
+    <!-- Logged in -->
+    <div id="loggedIn">
+      <!-- Humor Slider -->
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>😄 Humor Level</span>
+          <span class="slider-val" id="humorVal">50</span>
+        </div>
+        <input type="range" min="0" max="100" value="50" id="humorSlider" />
+      </div>
+
+      <!-- Detail Slider -->
+      <div class="slider-row">
+        <div class="slider-header">
+          <span>📋 Detail Level</span>
+          <span class="slider-val" id="detailVal">70</span>
+        </div>
+        <input type="range" min="0" max="100" value="70" id="detailSlider" />
+      </div>
+
+      <!-- Auto-enhance toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Auto-Enhance on Send</div>
+          <div class="toggle-desc">Enhance automatically when you press Enter</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="autoEnhanceToggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Upgrade Banner (shown when near limit) -->
+      <div class="upgrade-banner" id="upgradeBanner" style="display:none">
+        <p>🔥 You're running low on enhanced prompts!</p>
+        <a href="https://promptaura.io/pricing?source=extension" target="_blank">Upgrade Now →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Settings -->
+  <div class="tab-content" id="tab-settings">
+    <!-- API Key -->
+    <div class="api-section">
+      <div class="section-title">Your OpenAI / Gemini API Key</div>
+      <div class="api-input-wrap">
+        <input type="password" id="apiKeyInput" placeholder="sk-... or AIza..." />
+        <button class="api-save-btn" id="saveApiKey" title="Save">💾</button>
+      </div>
+    </div>
+
+    <!-- Platform toggles -->
+    <div class="api-section">
+      <div class="section-title">Platforms</div>
+      <div class="toggle-row" style="padding: 8px 0; border: none;">
+        <span style="font-size:13px">ChatGPT</span>
+        <label class="toggle"><input type="checkbox" id="platChatgpt" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row" style="padding: 8px 0; border: none;">
+        <span style="font-size:13px">Gemini</span>
+        <label class="toggle"><input type="checkbox" id="platGemini" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row" style="padding: 8px 0; border: none;">
+        <span style="font-size:13px">Claude</span>
+        <label class="toggle"><input type="checkbox" id="platClaude" checked /><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Stats -->
+  <div class="tab-content" id="tab-stats">
+    <div style="padding: 20px 18px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+        <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#00d4ff" id="statTotal">0</div>
+          <div style="font-size:11px;color:#64748b;margin-top:4px;">Total Enhanced</div>
+        </div>
+        <div style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#a78bfa" id="statAccuracy">98%</div>
+          <div style="font-size:11px;color:#64748b;margin-top:4px;">Accuracy Rate</div>
+        </div>
+        <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#10b981" id="statSaved">0m</div>
+          <div style="font-size:11px;color:#64748b;margin-top:4px;">Time Saved</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:10px;padding:14px;text-align:center;">
+          <div style="font-size:24px;font-weight:700;color:#f59e0b" id="statHumor">😄</div>
+          <div style="font-size:11px;color:#64748b;margin-top:4px;">Humor Mode</div>
+        </div>
+      </div>
+      <a href="https://promptaura.io/dashboard" target="_blank" class="btn-primary" style="font-size:13px;padding:9px;">View Full Dashboard →</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span style="font-size:11px;color:#64748b;">v1.0.0</span>
+    <div class="footer-links">
+      <a href="https://promptaura.io/dashboard" target="_blank">Dashboard</a>
+      <a href="https://promptaura.io/docs" target="_blank">Docs</a>
+      <a href="#" id="logoutBtn">Sign Out</a>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────
+    let settings = {};
+
+    // ── Load settings ─────────────────────────
+    chrome.storage.sync.get(
+      {
+        enabled: true, promptauraToken: '', plan: 'free',
+        humorLevel: 50, detailLevel: 70, autoEnhance: false,
+        apiKey: '', usageCount: 0,
+        platforms: { chatgpt: true, gemini: true, claude: true },
+      },
+      (data) => {
+        settings = data;
+        renderUI(data);
+      }
+    );
+
+    function renderUI(data) {
+      // Plan badge
+      const badge = document.getElementById('planBadge');
+      badge.textContent = data.plan.charAt(0).toUpperCase() + data.plan.slice(1);
+      badge.className = `plan-badge plan-${data.plan}`;
+
+      // Usage
+      const limits = { free: 50, basic: 500, premium: 999999 };
+      const limit = limits[data.plan] || 50;
+      const used = data.usageCount || 0;
+      document.getElementById('usedCount').textContent = used;
+      document.getElementById('limitCount').textContent = data.plan === 'premium' ? '∞' : limit;
+      const pct = Math.min(100, (used / limit) * 100);
+      const bar = document.getElementById('usageBar');
+      bar.style.width = pct + '%';
+      if (pct > 80) bar.classList.add('warning');
+
+      // Show upgrade banner if > 80% used
+      if (pct > 80 && data.plan !== 'premium') {
+        document.getElementById('upgradeBanner').style.display = 'block';
+      }
+
+      // Auth state
+      if (!data.promptauraToken) {
+        document.getElementById('notLoggedIn').classList.remove('hidden');
+        document.getElementById('loggedIn').style.display = 'none';
+      } else {
+        document.getElementById('notLoggedIn').classList.add('hidden');
+        document.getElementById('loggedIn').style.display = 'block';
+      }
+
+      // Sliders
+      document.getElementById('humorSlider').value = data.humorLevel;
+      document.getElementById('humorVal').textContent = data.humorLevel;
+      document.getElementById('detailSlider').value = data.detailLevel;
+      document.getElementById('detailVal').textContent = data.detailLevel;
+
+      // Toggles
+      document.getElementById('mainToggle').checked = data.enabled;
+      document.getElementById('autoEnhanceToggle').checked = data.autoEnhance;
+      document.getElementById('platChatgpt').checked = data.platforms?.chatgpt ?? true;
+      document.getElementById('platGemini').checked = data.platforms?.gemini ?? true;
+      document.getElementById('platClaude').checked = data.platforms?.claude ?? true;
+
+      // API key (masked)
+      if (data.apiKey) document.getElementById('apiKeyInput').value = data.apiKey;
+
+      // Stats
+      document.getElementById('statTotal').textContent = data.usageCount || 0;
+      document.getElementById('statSaved').textContent = Math.round((data.usageCount || 0) * 1.5) + 'm';
+
+      // Detect platform
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const url = tabs[0]?.url || '';
+        const platforms = {
+          'chat.openai.com': 'ChatGPT', 'chatgpt.com': 'ChatGPT',
+          'gemini.google.com': 'Gemini', 'claude.ai': 'Claude',
+        };
+        const host = new URL(url).hostname;
+        const platform = Object.entries(platforms).find(([k]) => host.includes(k));
+        if (platform) {
+          document.getElementById('platformName').textContent = platform[1];
+        } else {
+          document.getElementById('platformName').textContent = 'Not on a supported platform';
+          document.getElementById('statusDot').className = 'status-dot status-inactive';
+          document.getElementById('statusText').textContent = 'Not active here';
+        }
+      });
+    }
+
+    // ── Event Listeners ───────────────────────
+    document.getElementById('mainToggle').addEventListener('change', (e) => {
+      chrome.storage.sync.set({ enabled: e.target.checked });
+    });
+
+    document.getElementById('autoEnhanceToggle').addEventListener('change', (e) => {
+      chrome.storage.sync.set({ autoEnhance: e.target.checked });
+    });
+
+    document.getElementById('humorSlider').addEventListener('input', (e) => {
+      document.getElementById('humorVal').textContent = e.target.value;
+      chrome.storage.sync.set({ humorLevel: parseInt(e.target.value) });
+    });
+
+    document.getElementById('detailSlider').addEventListener('input', (e) => {
+      document.getElementById('detailVal').textContent = e.target.value;
+      chrome.storage.sync.set({ detailLevel: parseInt(e.target.value) });
+    });
+
+    document.getElementById('saveApiKey').addEventListener('click', () => {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      chrome.storage.sync.set({ apiKey: key }, () => {
+        document.getElementById('saveApiKey').textContent = '✅';
+        setTimeout(() => (document.getElementById('saveApiKey').textContent = '💾'), 1500);
+      });
+    });
+
+    ['platChatgpt', 'platGemini', 'platClaude'].forEach((id) => {
+      document.getElementById(id).addEventListener('change', (e) => {
+        const platform = id.replace('plat', '').toLowerCase();
+        chrome.storage.sync.get({ platforms: {} }, (data) => {
+          data.platforms[platform] = e.target.checked;
+          chrome.storage.sync.set({ platforms: data.platforms });
+        });
+      });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      chrome.storage.sync.set({ promptauraToken: '', refreshToken: '', plan: 'free' }, () => {
+        renderUI({ ...settings, promptauraToken: '', plan: 'free' });
+      });
+    });
+
+    // ── Tabs ──────────────────────────────────
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
