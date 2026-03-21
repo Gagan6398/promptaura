@@ -11,6 +11,5 @@
       "src": "/(.*)",
       "dest": "backend/server.js"
     }
-  ],
-  "outputDirectory": "backend"
+  ]
 }
