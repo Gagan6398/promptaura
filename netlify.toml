@@ -1,6 +1,9 @@
 [build]
-  command = "npm install"
-  publish = "."
+  command = "cd backend && npm install"
+  publish = "backend"
+  base = "backend"
 
-[functions]
-  directory = "netlify/functions"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
