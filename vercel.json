@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd backend && npm install",
+  "startCommand": "cd backend && node server.js",
+  "functions": {
+    "backend/server.js": {
+      "runtime": "nodejs24.x"
+    }
+  }
+}
